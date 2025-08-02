@@ -234,12 +234,11 @@ function preload() {
 async function setup() {
   await preload.complete;
 
-  // ✅ Assign loaded sound assets
+  // Sound asset assignments
   timeCircuitsOn = soundAssets.timeCircuitsOn;
   energyFill = soundAssets.energyFill;
   engineOn = soundAssets.engineOn;
   engineOff = soundAssets.engineOff;
-  console.log('Sound ready:', !!soundAssets.instructionSoundMusic);
 
   successText0Sound0 = soundAssets.successText0Sound0;
   successText1Sound0 = soundAssets.successText1Sound0;
@@ -247,7 +246,6 @@ async function setup() {
   successText3Sound0 = soundAssets.successText3Sound0;
   successText4Sound0 = soundAssets.successText4Sound0;
   successText5Sound0 = soundAssets.successText5Sound0;
-  console.log('Sound ready:', !!soundAssets.instructionSoundMusic);
 
   failText0Sound0 = soundAssets.failText0Sound0;
   failText0Sound1 = soundAssets.failText0Sound1;
@@ -256,7 +254,6 @@ async function setup() {
   failText3Sound0 = soundAssets.failText3Sound0;
   failText4Sound0 = soundAssets.failText4Sound0;
   failText5Sound0 = soundAssets.failText5Sound0;
-  console.log('Sound ready:', !!soundAssets.instructionSoundMusic);
 
   instructionSoundMusic = soundAssets.instructionSoundMusic;
   instructionSoundMusicLoop = soundAssets.instructionSoundMusicLoop;
@@ -268,17 +265,25 @@ async function setup() {
   clickSound1 = soundAssets.clickSound1;
   clickSoundBogus = soundAssets.clickSoundBogus;
 
-  // ✅ Grouped arrays
-  clickSounds = [soundAssets.clickSound0, soundAssets.clickSound1];
-
-  failText0Sounds = [soundAssets.failText0Sound0, soundAssets.failText0Sound1];
-
-  successText0Imgs = [successText0Img0]; // your image arrays likely need similar
+  // Group arrays
+  clickSounds = [clickSound0, clickSound1];
+  failText0Sounds = [failText0Sound0, failText0Sound1];
+  successText0Imgs = [successText0Img0];
   successText2Imgs = [successText2Img0];
   successText5Imgs = [successText5Img0, successText5Img1];
 
-  // 🎮 Proceed with canvas and instruction
   createCanvas(xy, xy);
+
+  // ✅ One-time sound launch
+  if (instructionSoundMusic && instructionSoundMusicLoop) {
+    instructionSoundMusic.setVolume(0.2);
+    instructionSoundMusic.play();
+    instructionSoundMusic.onended(() => {
+      instructionSoundMusicLoop.setVolume(0.15);
+      instructionSoundMusicLoop.loop();
+      console.log('🔁 BountyHuntersLoop started from setup');
+    });
+  }
 
   if (showInstructions && scr33n === 1) {
     instructionPage = 0;
@@ -286,48 +291,41 @@ async function setup() {
   }
 }
 
+
 function playBall() {
   showInstructions = false;
 
-  // 🧹 Clear all DOM elements
-  removeElements();
+  instructionSoundMusic?.stop();
+  instructionSoundMusicLoop?.stop();
 
-  // 🖼 Reset canvas
+  removeElements();
   createCanvas(xy, xy);
   pixelDensity(1);
 
-  // 🧮 Recalculate stroke and clearance based on difficulty
   if (diff === undefined) diff = 1;
   str0ke = (xy / 20) * (2 / diff);
   clearance = (diff / 5) * str0ke;
 
-  // 🌌 Visual randomness for mission
   circfill = color(random(256), random(256), random(256), random(256));
   squfill = color(random(256), random(256), random(256), random(256));
   trifill = color(random(256), random(256), random(256), random(256));
 
-  // 🌠 Setup stars and mission
   createStars();
   drawBackground();
   drawMissionRoute();
 
-  // 🔊 Play startup sounds
   energyFillSound();
   timeCircuitsOnSound();
 
-  // 🧹 Remove any instruction GUI elements (safe guards)
   instructionButton4?.remove();
   instructionImage04?.remove();
   instructionImage13?.remove();
-
   difficultyButton1?.remove();
   difficultyButton2?.remove();
   difficultyButton3?.remove();
   difficultyButton4?.remove();
   difficultyButton5?.remove();
 }
-
-
 function energyFillSound() {
   if (finishMission == false) {
     energyFill.play();
@@ -539,16 +537,20 @@ function drawInstructionPage(pageNum) {
     );
   }
 
-  if (pageNum === 0) {
-    if (instructionSoundMusic && instructionSoundMusicLoop) {
-      instructionSoundMusic.setVolume(0.2);
-      instructionSoundMusic.play();
-      instructionSoundMusicLoop.setVolume(0.15);
-      instructionSoundMusicLoop.loop();
-    } else {
-      console.warn('Instruction music not loaded yet.');
-    }
+ if (pageNum >= 0 && pageNum <= 3) {
+  // Check if intro sound is DONE and loop is NOT playing
+  if (
+    instructionSoundMusic &&
+    !instructionSoundMusic.isPlaying() &&
+    instructionSoundMusicLoop &&
+    !instructionSoundMusicLoop.isPlaying()
+  ) {
+    instructionSoundMusicLoop.setVolume(0.15);
+    instructionSoundMusicLoop.loop();
+    console.log('🔁 Manually started BountyHuntersLoop from page', pageNum);
   }
+}
+
 
   if (pageNum === 3) {
     instructionImage04 = createImg('Graphics/Imgs/BillandTedKeypad.png');
@@ -574,15 +576,13 @@ function createInstruction(pageNum) {
     });
   }
 
-  // Stop any playing instruction music if needed
-  instructionSoundMusic?.stop();
-  instructionSoundMusicLoop?.stop();
+  // ❌ Do NOT stop sounds here anymore
 
-  // Play the sound for this page if defined
-  const sound = window[config.sound];
-  if (sound) {
-    sound.setVolume(0.2);
-    sound.play();
+  // Play the SFX for this page (e.g. gunshot/goodluck)
+  const sfx = window[config.sound];
+  if (sfx && sfx !== instructionSoundMusic && sfx !== instructionSoundMusicLoop) {
+    sfx.setVolume(0.2);
+    sfx.play();
   }
 
   // Create the main instruction button
@@ -613,6 +613,7 @@ function createInstruction(pageNum) {
     });
   }
 }
+
 
 function somethingIsaFoot() {
   if (clickSoundExcellent.isPlaying() == false) {
@@ -1160,7 +1161,6 @@ function resetSketch() {
 
   energyFillSound();
 }
-
 
 function createStars() {
   stars = Array();

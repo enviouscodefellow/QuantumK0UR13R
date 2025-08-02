@@ -1,4 +1,104 @@
-new p5();
+//new p5();
+const soundAssets = {};
+const soundManifest = {
+  // Energy & Engine
+  energyFill: 'MusicSFX/Sound/EnergyRefill.wav',
+  timeCircuitsOn: 'MusicSFX/Sound/PowerUp.ogg',
+  engineOn: 'MusicSFX/Sound/EngineRunning.wav',
+  engineOff: 'MusicSFX/Sound/PowerDown.wav',
+
+  // Success Sounds
+  successText0Sound0: 'MusicSFX/Sound/ParkerSuccess.ogg',
+  successText1Sound0: 'MusicSFX/Sound/OregonTrailSuccess.ogg',
+  successText2Sound0: 'MusicSFX/Sound/MajorTomSuccess.ogg',
+  successText3Sound0: 'MusicSFX/Sound/PicaardSuccess.ogg',
+  successText4Sound0: 'MusicSFX/Sound/GeorgeSuccess.ogg',
+  successText5Sound0: 'MusicSFX/Sound/ObiWanSuccess.ogg',
+
+  // Fail Sounds
+  failText0Sound0: 'MusicSFX/Sound/HudsonFail0.ogg',
+  failText0Sound1: 'MusicSFX/Sound/HudsonFail1.ogg',
+  failText1Sound0: 'MusicSFX/Sound/OregonTrailFail.ogg',
+  failText2Sound0: 'MusicSFX/Sound/MajorTomFail.ogg',
+  failText3Sound0: 'MusicSFX/Sound/KirkFail.ogg',
+  failText4Sound0: 'MusicSFX/Sound/GeorgeFail.ogg',
+  failText5Sound0: 'MusicSFX/Sound/c3poFail.ogg',
+
+  // Instruction Sounds
+  instructionSoundMusic: 'MusicSFX/Sound/BountyHunters.ogg',
+  instructionSoundMusicLoop: 'MusicSFX/Sound/BountyHuntersLoop.ogg',
+  instructionSoundPage: 'MusicSFX/Sound/Gunshot.ogg',
+  instructionSoundGoodluck: 'MusicSFX/Sound/Goodluck.ogg',
+
+  // Click & Easter Egg Sounds
+  clickSoundExcellent: 'MusicSFX/Sound/Excellent.ogg',
+  clickSound0: 'MusicSFX/Sound/Click0.ogg',
+  clickSound1: 'MusicSFX/Sound/Click1.ogg',
+  clickSoundBogus: 'MusicSFX/Sound/Bogus.ogg',
+};
+const instructionPages = [
+  {
+    label: 'Next Page',
+    nextPage: 1,
+    sound: 'instructionSoundMusic',
+    buttonWidth: 90,
+  },
+  {
+    label: 'Next Page',
+    nextPage: 2,
+    sound: 'instructionSoundPage',
+    buttonWidth: 90,
+    remove: ['instructionImage01', 'instructionImage11', 'instructionButton1'],
+  },
+  {
+    label: 'Select Difficulty',
+    nextPage: 3,
+    sound: 'instructionSoundGoodluck',
+    buttonWidth: 120,
+    remove: ['instructionImage02', 'instructionImage12', 'instructionButton2'],
+  },
+  {
+    label: 'Start Game',
+    action: 'playBall',
+    buttonWidth: 90,
+    remove: ['instructionImage03', 'instructionImage13', 'instructionButton3'],
+    difficultyImages: [
+      {
+        src: 'Graphics/Imgs/Keypad1.png',
+        x: 7,
+        y: -44,
+        handler: 'setDifficulty1',
+      },
+      {
+        src: 'Graphics/Imgs/Keypad2.png',
+        x: 62,
+        y: -45,
+        handler: 'setDifficulty2',
+      },
+      {
+        src: 'Graphics/Imgs/Keypad3.png',
+        x: 117,
+        y: -45,
+        handler: 'setDifficulty3',
+      },
+      {
+        src: 'Graphics/Imgs/Keypad4.png',
+        x: 7,
+        y: -2,
+        handler: 'setDifficulty4',
+      },
+      {
+        src: 'Graphics/Imgs/KeypadLoop.png',
+        x: 123,
+        y: 85,
+        handler: 'somethingIsaFoot',
+        w: 32,
+        h: 25,
+      },
+    ],
+  },
+];
+
 let xy = 500; //canvas pixels for each side of square canvas
 let topMargin = xy / 25;
 let bottomMargin = xy - (1 / 25) * xy;
@@ -10,7 +110,7 @@ var healthLoad = 0;
 var healthStart = 0;
 var healthRefill = 0;
 let startFinish = ['S', 'F'];
-let start = random(startFinish);
+let start = startFinish[Math.floor(Math.random() * startFinish.length)];
 var showInstructions = true;
 var gameStart = false;
 var energyDrain = false;
@@ -33,6 +133,9 @@ var startDisplay;
 var scr33n = 1;
 var click = 0;
 let missionLcirc;
+
+let circfill, squfill, trifill;
+
 let missionRcirc;
 let a;
 let b;
@@ -70,26 +173,6 @@ let engineOff;
 let nineteenEightyFive = false;
 
 var instructionImage0;
-
-let circfill = color(
-  random(0, 256),
-  random(0, 256),
-  random(0, 256),
-  random(0, 256)
-);
-let squfill = color(
-  random(0, 256),
-  random(0, 256),
-  random(0, 256),
-  random(0, 256)
-);
-let trifill = color(
-  random(0, 256),
-  random(0, 256),
-  random(0, 256),
-  random(0, 256)
-);
-
 const STAR_COUNT = 100;
 const FLY_SPEED = 0.01;
 
@@ -126,81 +209,124 @@ function preload() {
   failText4Img0 = loadImage('Graphics/Imgs/GeorgeFail0.png');
   failText5Img0 = loadImage('Graphics/Imgs/C3POFail0.png');
 
-  //Success Sound File Load
   soundFormats('mp3', 'wav', 'ogg');
-  energyFill = loadSound('MusicSFX/Sound/EnergyRefill.wav');
-  timeCircuitsOn = loadSound('MusicSFX/Sound/PowerUp.ogg');
-  engineOn = loadSound('MusicSFX/Sound/EngineRunning.wav');
-  engineOff = loadSound('MusicSFX/Sound/PowerDown.wav');
-  successText0Sound0 = loadSound('MusicSFX/Sound/ParkerSuccess.ogg');
-  successText1Sound0 = loadSound('MusicSFX/Sound/OregonTrailSuccess.ogg');
-  successText2Sound0 = loadSound('MusicSFX/Sound/MajorTomSuccess.ogg');
-  successText3Sound0 = loadSound('MusicSFX/Sound/PicaardSuccess.ogg');
-  successText4Sound0 = loadSound('MusicSFX/Sound/GeorgeSuccess.ogg');
-  successText5Sound0 = loadSound('MusicSFX/Sound/ObiWanSuccess.ogg');
 
-  //Fail Sound File Load
-  failText0Sound0 = loadSound('MusicSFX/Sound/HudsonFail0.ogg');
-  failText0Sound1 = loadSound('MusicSFX/Sound/HudsonFail1.ogg');
-  failText0Sounds = [failText0Sound0, failText0Sound1];
-  failText1Sound0 = loadSound('MusicSFX/Sound/OregonTrailFail.ogg');
-  failText2Sound0 = loadSound('MusicSFX/Sound/MajorTomFail.ogg');
-  failText3Sound0 = loadSound('MusicSFX/Sound/KirkFail.ogg');
-  failText4Sound0 = loadSound('MusicSFX/Sound/GeorgeFail.ogg');
-  failText5Sound0 = loadSound('MusicSFX/Sound/c3poFail.ogg');
+  const promises = Object.entries(soundManifest).map(([key, path]) => {
+    return new Promise((resolve, reject) => {
+      loadSound(
+        path,
+        (sound) => {
+          soundAssets[key] = sound;
+          resolve();
+        },
+        (err) => {
+          console.warn(`Failed to load sound: ${path}`);
+          resolve(); // still resolve so Promise.all continues
+        }
+      );
+    });
+  });
 
-  clickSoundExcellent = loadSound('MusicSFX/Sound/Excellent.ogg');
-  clickSound0 = loadSound('MusicSFX/Sound/Click0.ogg');
-  clickSound1 = loadSound('MusicSFX/Sound/Click1.ogg');
-  clickSounds = [clickSound0, clickSound1];
-  clickSoundBogus = loadSound('MusicSFX/Sound/Bogus.ogg');
-  instructionSoundMusic = loadSound('MusicSFX/Sound/BountyHunters.ogg');
-  instructionSoundMusicLoop = loadSound('MusicSFX/Sound/BountyHuntersLoop.ogg');
-  instructionSoundPage = loadSound('MusicSFX/Sound/Gunshot.ogg');
-  instructionSoundGoodluck = loadSound('MusicSFX/Sound/Goodluck.ogg');
+  // preload() must return a Promise if you're using async preload:
+  preload.complete = Promise.all(promises);
 }
 
-function setup() {
-  createCanvas(xy, xy);
-  //createStars();
-  //drawBackground();
-  //drawMissionRoute();
+async function setup() {
+  await preload.complete;
 
-  if (showInstructions == true) {
-    if (scr33n == 1) {
-      instructionPage1 = 0;
-      drawInstructionPage1();
-    }
+  // ✅ Assign loaded sound assets
+  timeCircuitsOn = soundAssets.timeCircuitsOn;
+  energyFill = soundAssets.energyFill;
+  engineOn = soundAssets.engineOn;
+  engineOff = soundAssets.engineOff;
+  console.log('Sound ready:', !!soundAssets.instructionSoundMusic);
+
+  successText0Sound0 = soundAssets.successText0Sound0;
+  successText1Sound0 = soundAssets.successText1Sound0;
+  successText2Sound0 = soundAssets.successText2Sound0;
+  successText3Sound0 = soundAssets.successText3Sound0;
+  successText4Sound0 = soundAssets.successText4Sound0;
+  successText5Sound0 = soundAssets.successText5Sound0;
+  console.log('Sound ready:', !!soundAssets.instructionSoundMusic);
+
+  failText0Sound0 = soundAssets.failText0Sound0;
+  failText0Sound1 = soundAssets.failText0Sound1;
+  failText1Sound0 = soundAssets.failText1Sound0;
+  failText2Sound0 = soundAssets.failText2Sound0;
+  failText3Sound0 = soundAssets.failText3Sound0;
+  failText4Sound0 = soundAssets.failText4Sound0;
+  failText5Sound0 = soundAssets.failText5Sound0;
+  console.log('Sound ready:', !!soundAssets.instructionSoundMusic);
+
+  instructionSoundMusic = soundAssets.instructionSoundMusic;
+  instructionSoundMusicLoop = soundAssets.instructionSoundMusicLoop;
+  instructionSoundPage = soundAssets.instructionSoundPage;
+  instructionSoundGoodluck = soundAssets.instructionSoundGoodluck;
+
+  clickSoundExcellent = soundAssets.clickSoundExcellent;
+  clickSound0 = soundAssets.clickSound0;
+  clickSound1 = soundAssets.clickSound1;
+  clickSoundBogus = soundAssets.clickSoundBogus;
+
+  // ✅ Grouped arrays
+  clickSounds = [soundAssets.clickSound0, soundAssets.clickSound1];
+
+  failText0Sounds = [soundAssets.failText0Sound0, soundAssets.failText0Sound1];
+
+  successText0Imgs = [successText0Img0]; // your image arrays likely need similar
+  successText2Imgs = [successText2Img0];
+  successText5Imgs = [successText5Img0, successText5Img1];
+
+  // 🎮 Proceed with canvas and instruction
+  createCanvas(xy, xy);
+
+  if (showInstructions && scr33n === 1) {
+    instructionPage = 0;
+    drawInstructionPage(0);
   }
 }
 
 function playBall() {
   showInstructions = false;
-  if (diff == undefined) {
-    diff = 1;
-  }
 
+  // 🧹 Clear all DOM elements
+  removeElements();
+
+  // 🖼 Reset canvas
   createCanvas(xy, xy);
   pixelDensity(1);
+
+  // 🧮 Recalculate stroke and clearance based on difficulty
+  if (diff === undefined) diff = 1;
   str0ke = (xy / 20) * (2 / diff);
   clearance = (diff / 5) * str0ke;
 
+  // 🌌 Visual randomness for mission
+  circfill = color(random(256), random(256), random(256), random(256));
+  squfill = color(random(256), random(256), random(256), random(256));
+  trifill = color(random(256), random(256), random(256), random(256));
+
+  // 🌠 Setup stars and mission
   createStars();
   drawBackground();
   drawMissionRoute();
+
+  // 🔊 Play startup sounds
   energyFillSound();
   timeCircuitsOnSound();
 
-  instructionButton4.remove();
-  instructionImage04.remove();
-  //instructionImage13.remove();
+  // 🧹 Remove any instruction GUI elements (safe guards)
+  instructionButton4?.remove();
+  instructionImage04?.remove();
+  instructionImage13?.remove();
 
-  difficultyButton1.remove();
-  difficultyButton2.remove();
-  difficultyButton3.remove();
-  difficultyButton4.remove();
-  difficultyButton5.remove();
+  difficultyButton1?.remove();
+  difficultyButton2?.remove();
+  difficultyButton3?.remove();
+  difficultyButton4?.remove();
+  difficultyButton5?.remove();
 }
+
 
 function energyFillSound() {
   if (finishMission == false) {
@@ -275,275 +401,217 @@ function missionOver() {
   }
 }
 
-function drawInstructionPage1() {
-  while (instructionPage < 1) {
-    const colors = [
-      [240, 100, 150],
-      [100, 220, 170],
-      [180, 80, 200],
-    ];
-    const ttl = ['Howdy cowboys!', 'CAUTION', 'Ready?'];
-    const txt = [
-      'You have been tasked to transport valuable cargo through space.  \n\nYou must traverse a pre-determined flight path through space with the limited energy in your ship.',
-      'Once you begin your space jump, energy will deplete. \nBe careful, if you stray from the flight path, energy will deplete faster as you go further from the flight path.  \n\nYou MUST dock at each station, by clicking the mouse button at each station.  Docking also replenishes your energy for the next leg of your flight path.',
-      'If you successfully dock at each station (1, 2, and 3) as well as the final station (F), you survive. \n\nAs difficulty increases, your flight path will narrow and energy depletes faster. \n\nGood luck cowboys!',
-    ];
+// function drawInstructionPage(pageNum) {
+//   console.log(`Running drawInstructionPage(${pageNum})`);
 
-    background(
-      colors[instructionPage][0],
-      colors[instructionPage][1],
-      colors[instructionPage][2]
+//   // TEMPORARY TEST RETURN – disable actual drawing logic
+//   // return;
+
+//   removeElements(); // clears previous buttons/images
+
+//   const colors = [
+//     [240, 100, 150],
+//     [100, 220, 170],
+//     [180, 80, 200],
+//     [17, 30, 108],
+//   ];
+//   const ttl = ['Howdy cowboys!', 'CAUTION', 'Ready?', 'Select a difficulty.'];
+//   const txt = [
+//     'You have been tasked to transport valuable cargo through space.  \n\nYou must traverse a pre-determined flight path through space with the limited energy in your ship.',
+//     'Once you begin your space jump, energy will deplete. \nBe careful, if you stray from the flight path, energy will deplete faster as you go further from the flight path.  \n\nYou MUST dock at each station, by clicking the mouse button at each station.  Docking also replenishes your energy for the next leg of your flight path.',
+//     'If you successfully dock at each station (1, 2, and 3) as well as the final station (F), you survive. \n\nAs difficulty increases, your flight path will narrow and energy depletes faster. \n\nGood luck cowboys!',
+//     '1: Basic\n2: Intermediate\n3: Advanced\n4: Expert',
+//   ];
+
+//   background(...colors[pageNum]);
+
+//   fill(255);
+//   textAlign(CENTER, TOP);
+//   textSize(width / 20);
+//   text(ttl[pageNum], 10, 10 + width / 20, width - 20, height - 30);
+
+//   textSize(width / 32);
+//   text(txt[pageNum], 10, 20 + width / 10, width - 20, height - 30);
+
+//   if (pageNum < 3) {
+//     // Instruction image (P&J gif)
+//     const img1 = createImg('Graphics/Imgs/PunchandJudy.gif');
+//     img1.size(height / 3, width / 3);
+//     img1.position(height / 3 - 31, width / 2);
+
+//     // TV overlay
+//     const img2 = createImg('Graphics/Imgs/RetroTV.png');
+//     img2.size(height / 3 + 120, width / 3 + 75);
+//     img2.position(height / 3 - 60, width / 2 - 30);
+
+//     // Store references so you can .remove() them later if needed
+//     window[`instructionImage0${pageNum + 1}`] = img1;
+//     window[`instructionImage1${pageNum + 1}`] = img2;
+//   }
+
+//   if (pageNum === 3) {
+//     instructionImage04 = createImg('Graphics/Imgs/BillandTedKeypad.png');
+//     instructionImage04.size(height / 3, width / 3);
+//     instructionImage04.position(height / 3, width / 2 - 50);
+//     instructionImage04.mousePressed(bogus);
+//   }
+
+//   instructionPage = pageNum;
+
+//   // --- Button Creation ---
+//   const buttonLabels = ['Next Page', 'Next Page', 'Select Difficulty', 'Start Game'];
+//   const buttonActions = [
+//     () => drawInstructionPage(1),
+//     () => drawInstructionPage(2),
+//     () => drawInstructionPage(3),
+//     playBall,
+//   ];
+
+//   const btn = createButton(buttonLabels[pageNum]);
+//   btn.position(width / 2 - 60, height - 60);
+//   btn.size(120, 30);
+//   btn.mousePressed(buttonActions[pageNum]);
+
+//   // Optional: play sounds
+//   if (pageNum === 0 && instructionSoundMusic && instructionSoundMusicLoop) {
+//     instructionSoundMusic.setVolume(0.2);
+//     instructionSoundMusic.play();
+//     instructionSoundMusicLoop.setVolume(0.15);
+//     instructionSoundMusicLoop.loop();
+//   }
+
+//   if (pageNum === 1 && instructionSoundPage) instructionSoundPage.play();
+//   if (pageNum === 2 && instructionSoundGoodluck) instructionSoundGoodluck.play();
+// }
+
+function drawInstructionPage(pageNum) {
+  console.log(`drawInstructionPage(${pageNum})`);
+  removeElements(); // good to clear the previous content
+
+  const colors = [
+    [240, 100, 150],
+    [100, 220, 170],
+    [180, 80, 200],
+    [17, 30, 108],
+  ];
+  const ttl = ['Howdy cowboys!', 'CAUTION', 'Ready?', 'Select a difficulty.'];
+  const txt = [
+    'You have been tasked to transport valuable cargo through space.  \n\nYou must traverse a pre-determined flight path through space with the limited energy in your ship.',
+    'Once you begin your space jump, energy will deplete. \nBe careful, if you stray from the flight path, energy will deplete faster as you go further from the flight path.  \n\nYou MUST dock at each station, by clicking the mouse button at each station.  Docking also replenishes your energy for the next leg of your flight path.',
+    'If you successfully dock at each station (1, 2, and 3) as well as the final station (F), you survive. \n\nAs difficulty increases, your flight path will narrow and energy depletes faster. \n\nGood luck cowboys!',
+    '1: Basic\n2: Intermediate\n3: Advanced\n4:Expert',
+  ];
+
+  //if (instructionPage !== pageNum) {
+  instructionPage = pageNum;
+  background(...colors[pageNum]);
+
+  fill(255);
+
+  textAlign(CENTER, TOP);
+
+  textSize(width / 20);
+  text(ttl[pageNum], 10, 10 + width / 20, width - 20, height - 30);
+
+  textSize(width / 32);
+  text(txt[pageNum], 10, 20 + width / 10, width - 20, height - 30);
+
+  if (pageNum < 3) {
+    window[`instructionImage0${pageNum + 1}`] = createImg(
+      'Graphics/Imgs/PunchandJudy.gif'
+    );
+    window[`instructionImage0${pageNum + 1}`].size(height / 3, width / 3);
+    window[`instructionImage0${pageNum + 1}`].position(
+      height / 3 - 31,
+      width / 2
     );
 
-    fill(255);
-
-    textAlign(CENTER, TOP);
-
-    textSize(width / 20);
-    text(ttl[instructionPage], 10, 10 + width / 20, width - 20, height - 30);
-
-    textSize(width / 32);
-    text(txt[instructionPage], 10, 20 + width / 10, width - 20, height - 30);
-
-    instructionImage01 = createImg('Graphics/Imgs/PunchandJudy.gif');
-    instructionImage01.size(height / 3, width / 3);
-    instructionImage01.position(height / 3 - 31, width / 2);
-
-    instructionImage11 = createImg('Graphics/Imgs/RetroTV.png');
-    instructionImage11.size(height / 3 + 120, width / 3 + 75);
-    instructionImage11.position(height / 3 - 60, width / 2 - 30);
-
-    instructionSoundMusic.play();
-    ++instructionPage;
-    createInstruction1();
-    instructionSoundMusic.setVolume(0.2);
-    //instructionSoundMusic.play();
-    instructionSoundMusicLoop.setVolume(0.15);
-    instructionSoundMusicLoop.loop();
-  }
-}
-function drawInstructionPage2() {
-  while (instructionPage < 2) {
-    const colors = [
-      [240, 100, 150],
-      [100, 220, 170],
-      [180, 80, 200],
-    ];
-    const ttl = ['Howdy cowboys!', 'CAUTION', 'Ready?'];
-    const txt = [
-      'You have been tasked to transport valuable cargo through space.  \n\nYou must traverse a pre-determined flight path through space with the limited energy in your ship.',
-      'Once you begin your space jump, energy will deplete. \nBe careful, if you stray from the flight path, energy will deplete faster as you go further from the flight path.  \n\nYou MUST dock at each station, by clicking the mouse button at each station.  Docking also replenishes your energy for the next leg of your flight path.',
-      'If you successfully dock at each station (1, 2, and 3) as well as the final station (F), you survive. \n\nAs difficulty increases, your flight path will narrow and energy depletes faster. \n\nGood luck cowboys!',
-    ];
-
-    background(
-      colors[instructionPage][0],
-      colors[instructionPage][1],
-      colors[instructionPage][2]
+    window[`instructionImage1${pageNum + 1}`] = createImg(
+      'Graphics/Imgs/RetroTV.png'
     );
-
-    fill(255);
-
-    textAlign(CENTER, TOP);
-
-    textSize(width / 20);
-    text(ttl[instructionPage], 10, 10 + width / 20, width - 20, height - 30);
-
-    textSize(width / 32);
-    text(txt[instructionPage], 10, 20 + width / 10, width - 20, height - 30);
-
-    instructionImage02 = createImg('Graphics/Imgs/PunchandJudy.gif');
-    instructionImage02.size(height / 3, width / 3);
-    instructionImage02.position(height / 3 - 31, width / 2);
-
-    instructionImage12 = createImg('Graphics/Imgs/RetroTV.png');
-    instructionImage12.size(height / 3 + 120, width / 3 + 75);
-    instructionImage12.position(height / 3 - 60, width / 2 - 30);
-
-    ++instructionPage;
-    createInstruction2();
-  }
-
-  if ((num = 4)) {
-  }
-  /*if someone clicks and mouse x is where the rectangle usually is{
-  drawInstructionPage(num+1)
-}
-*/
-}
-function drawInstructionPage3() {
-  while (instructionPage < 3) {
-    const colors = [
-      [240, 100, 150],
-      [100, 220, 170],
-      [180, 80, 200],
-    ];
-    const ttl = ['Howdy cowboys!', 'CAUTION', 'Ready?'];
-    const txt = [
-      'You have been tasked to transport valuable cargo through space.  \n\nYou must traverse a pre-determined flight path through space with the limited energy in your ship.',
-      'Once you begin your space jump, energy will deplete. \nBe careful, if you stray from the flight path, energy will deplete faster as you go further from the flight path.  \n\nYou MUST dock at each station, by clicking the mouse button at each station.  Docking also replenishes your energy for the next leg of your flight path.',
-      'If you successfully dock at each station (1, 2, and 3) as well as the final station (F), you survive. \n\nAs difficulty increases, your flight path will narrow and energy depletes faster. \n\nGood luck cowboys!',
-    ];
-
-    background(
-      colors[instructionPage][0],
-      colors[instructionPage][1],
-      colors[instructionPage][2]
+    window[`instructionImage1${pageNum + 1}`].size(
+      height / 3 + 120,
+      width / 3 + 75
     );
-
-    fill(255);
-
-    textAlign(CENTER, TOP);
-
-    textSize(width / 20);
-    text(ttl[instructionPage], 10, 10 + width / 20, width - 20, height - 30);
-
-    textSize(width / 32);
-    text(txt[instructionPage], 10, 20 + width / 10, width - 20, height - 30);
-
-    instructionImage03 = createImg('Graphics/Imgs/PunchandJudy.gif');
-    instructionImage03.size(height / 3, width / 3);
-    instructionImage03.position(height / 3 - 31, width / 2);
-
-    instructionImage13 = createImg('Graphics/Imgs/RetroTV.png');
-    instructionImage13.size(height / 3 + 120, width / 3 + 75);
-    instructionImage13.position(height / 3 - 60, width / 2 - 30);
-
-    ++instructionPage;
-    createInstruction3();
-  }
-
-  if ((num = 4)) {
-  }
-  /*if someone clicks and mouse x is where the rectangle usually is{
-  drawInstructionPage(num+1)
-}
-*/
-}
-
-function drawInstructionPage4() {
-  removeElements();
-
-  while (instructionPage < 4) {
-    const colors = [
-      [240, 100, 150],
-      [100, 220, 170],
-      [180, 80, 200],
-      [17, 30, 108],
-    ];
-    const ttl = ['Howdy cowboys!', 'CAUTION', 'Ready?', 'Select a difficulty.'];
-    const txt = [
-      'You have been tasked to transport valuable cargo through space.  \n\nYou must traverse a pre-determined flight path through space with the limited energy in your ship.',
-      'Once you begin your space jump, energy will deplete. \nBe careful, if you stray from the flight path, energy will deplete faster as you go further from the flight path.  \n\nYou MUST dock at each station, by clicking the mouse button at each station.  Docking also replenishes your energy for the next leg of your flight path.',
-      'If you successfully dock at each station (1, 2, and 3) as well as the final station (F), you survive. \n\nAs difficulty increases, your flight path will narrow and energy depletes faster. \n\nGood luck cowboys!',
-      '1: Basic\n2: Intermediate\n3: Advanced\n4:Expert',
-    ];
-
-    background(
-      colors[instructionPage][0],
-      colors[instructionPage][1],
-      colors[instructionPage][2]
+    window[`instructionImage1${pageNum + 1}`].position(
+      height / 3 - 60,
+      width / 2 - 30
     );
+  }
 
-    fill(255);
+  if (pageNum === 0) {
+    if (instructionSoundMusic && instructionSoundMusicLoop) {
+      instructionSoundMusic.setVolume(0.2);
+      instructionSoundMusic.play();
+      instructionSoundMusicLoop.setVolume(0.15);
+      instructionSoundMusicLoop.loop();
+    } else {
+      console.warn('Instruction music not loaded yet.');
+    }
+  }
 
-    textAlign(CENTER, TOP);
-
-    textSize(width / 20);
-    text(ttl[instructionPage], 10, 10 + width / 20, width - 20, height - 30);
-
-    textSize(width / 32);
-    text(txt[instructionPage], 10, 20 + width / 10, width - 20, height - 30);
-
+  if (pageNum === 3) {
     instructionImage04 = createImg('Graphics/Imgs/BillandTedKeypad.png');
     instructionImage04.size(height / 3, width / 3);
     instructionImage04.position(height / 3, width / 2 - 50);
     instructionImage04.mousePressed(bogus);
-
-    ++instructionPage;
-    createInstruction4();
   }
 
-  if ((num = 4)) {
+  instructionPage = pageNum;
+
+  // Create the correct button
+  createInstruction(pageNum);
+}
+//}
+
+function createInstruction(pageNum) {
+  const config = instructionPages[pageNum];
+
+  // Remove any previous elements safely
+  if (config.remove) {
+    config.remove.forEach((id) => {
+      window[id]?.remove();
+    });
   }
-  /*if someone clicks and mouse x is where the rectangle usually is{
-  drawInstructionPage(num+1)
-}
-*/
-}
 
-function createInstruction1() {
-  instructionButton1 = createButton(buttonText[0]);
-  //instructionButton.mouseClicked(drawInstructionPage(num+1))
+  // Stop any playing instruction music if needed
+  instructionSoundMusic?.stop();
+  instructionSoundMusicLoop?.stop();
 
-  instructionButton1.position(width / 2 - 45, bottomMargin - textSize());
-  instructionButton1.size(90, 30);
-  instructionButton1.mousePressed(drawInstructionPage2);
-}
+  // Play the sound for this page if defined
+  const sound = window[config.sound];
+  if (sound) {
+    sound.setVolume(0.2);
+    sound.play();
+  }
 
-function createInstruction2() {
-  instructionSoundPage.play();
-  instructionImage01.remove();
-  instructionImage11.remove();
-  instructionButton1.remove();
-  instructionButton2 = createButton(buttonText[1]);
-  //instructionButton.mouseClicked(drawInstructionPage(num+1))
+  // Create the main instruction button
+  const btn = createButton(config.label);
+  btn.position(width / 2 - config.buttonWidth / 2, bottomMargin - textSize());
+  btn.size(config.buttonWidth, 30);
 
-  instructionButton2.position(width / 2 - 45, bottomMargin - textSize());
-  instructionButton2.size(90, 30);
-  instructionButton2.mousePressed(drawInstructionPage3);
-}
+  if (config.action && typeof window[config.action] === 'function') {
+    btn.mousePressed(window[config.action]);
+  } else if (typeof config.nextPage === 'number') {
+    btn.mousePressed(() => drawInstructionPage(config.nextPage));
+  }
 
-function createInstruction3() {
-  instructionSoundGoodluck.play();
-  instructionImage02.remove();
-  instructionImage12.remove();
-  instructionButton2.remove();
-  instructionButton3 = createButton(buttonText[2]);
-  //instructionButton.mouseClicked(drawInstructionPage(num+1))
+  window[`instructionButton${pageNum + 1}`] = btn;
 
-  instructionButton3.position(width / 2 - 60, bottomMargin - textSize());
-  instructionButton3.size(120, 30);
-  instructionButton3.mousePressed(drawInstructionPage4);
-}
-
-function createInstruction4() {
-  instructionSoundMusic.stop();
-  instructionSoundMusicLoop.stop();
-  instructionImage03.remove();
-  instructionImage13.remove();
-  instructionButton3.remove();
-  instructionButton4 = createButton(buttonText[3]);
-  //instructionButton.mouseClicked(drawInstructionPage(num+1))
-
-  instructionButton4.position(width / 2 - 45, bottomMargin - textSize());
-  instructionButton4.size(90, 30);
-  instructionButton4.mousePressed(playBall);
-
-  difficultyButton1 = createImg('Graphics/Imgs/Keypad1.png');
-  difficultyButton1.position(height / 3 + 7, width / 2 - 44);
-  difficultyButton1.size(43, 31);
-  difficultyButton1.mousePressed(setDifficulty1);
-
-  difficultyButton2 = createImg('Graphics/Imgs/Keypad2.png');
-  difficultyButton2.position(height / 3 + 62, width / 2 - 45);
-  difficultyButton2.size(43, 31);
-  difficultyButton2.mousePressed(setDifficulty2);
-
-  difficultyButton3 = createImg('Graphics/Imgs/Keypad3.png');
-  difficultyButton3.position(height / 3 + 117, width / 2 - 45);
-  difficultyButton3.size(44, 31);
-  difficultyButton3.mousePressed(setDifficulty3);
-
-  difficultyButton4 = createImg('Graphics/Imgs/Keypad4.png');
-  difficultyButton4.position(height / 3 + 7, width / 2 - 2);
-  difficultyButton4.size(43, 31);
-  difficultyButton4.mousePressed(setDifficulty4);
-
-  difficultyButton5 = createImg('Graphics/Imgs/KeypadLoop.png');
-  difficultyButton5.position(height / 3 + 123, width / 2 + 85);
-  difficultyButton5.size(32, 25);
-  difficultyButton5.mousePressed(somethingIsaFoot);
+  // If difficulty images are defined (page 4), render them
+  if (config.difficultyImages) {
+    config.difficultyImages.forEach((item, i) => {
+      const img = createImg(item.src);
+      img.size(item.w || 43, item.h || 31);
+      img.position(height / 3 + item.x, width / 2 + item.y);
+      img.mousePressed(() => {
+        if (typeof window[item.handler] === 'function') {
+          window[item.handler]();
+        }
+      });
+      window[`difficultyButton${i + 1}`] = img;
+    });
+  }
 }
 
 function somethingIsaFoot() {
@@ -553,9 +621,28 @@ function somethingIsaFoot() {
 }
 
 function draw() {
+  console.log('draw is running');
+  let circfill = color(
+    Math.random(0, 256),
+    Math.random(0, 256),
+    Math.random(0, 256),
+    Math.random(0, 256)
+  );
+  let squfill = color(
+    Math.random(0, 256),
+    Math.random(0, 256),
+    Math.random(0, 256),
+    Math.random(0, 256)
+  );
+  let trifill = color(
+    Math.random(0, 256),
+    Math.random(0, 256),
+    Math.random(0, 256),
+    Math.random(0, 256)
+  );
   if (
-    (timeCircuitsOn.isPlaying() == true && gameStart == false) ||
-    (energyFill.isPlaying() == true && gameStart == false)
+    (timeCircuitsOn && timeCircuitsOn.isPlaying() && !gameStart) ||
+    (energyFill && energyFill.isPlaying() && !gameStart)
   ) {
     nineteenEightyFive = false;
   } else {
@@ -1041,9 +1128,9 @@ function windowOpen() {
 }
 
 function resetSketch() {
-  maxHealth = xy / 2; //200 * (1 / diff);
-  //healthLoad = 0;
-  //healthStart = 0;
+  maxHealth = xy / 2;
+
+  // Reset game state
   gameStart = false;
   energyDrain = false;
   startMission = false;
@@ -1054,37 +1141,26 @@ function resetSketch() {
   showInstructions = false;
   failText = 0;
   successText = 0;
+
+  // Reset sounds and visuals
   timeCircuitsOnSound();
 
-  circfill = color(
-    random(0, 256),
-    random(0, 256),
-    random(0, 256),
-    random(0, 256)
-  );
-  squfill = color(
-    random(0, 256),
-    random(0, 256),
-    random(0, 256),
-    random(0, 256)
-  );
-  trifill = color(
-    random(0, 256),
-    random(0, 256),
-    random(0, 256),
-    random(0, 256)
-  );
+  circfill = color(random(256), random(256), random(256), random(256));
+  squfill = color(random(256), random(256), random(256), random(256));
+  trifill = color(random(256), random(256), random(256), random(256));
 
   createStars();
   drawBackground();
   drawMissionRoute();
-  retryButton.remove();
-  menuButton.remove();
-  difficultyIncButton.remove();
-  difficultyDecButton.remove();
+
+  retryButton?.remove();
+  menuButton?.remove();
+  difficultyIncButton?.remove();
+  difficultyDecButton?.remove();
 
   energyFillSound();
 }
+
 
 function createStars() {
   stars = Array();
